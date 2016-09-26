@@ -1,0 +1,375 @@
+Mukai Nong
+3118-3004-28
+2016/02/22
+
+Disclaimer: Source code of Q2-Q5 listed below are successfully tested on both sqlfiddle.com and ideone.com. If you have trouble running sql, contact me and I will show you the demo.
+
+
+Q1:http://www.sqlfiddle.com/#!15/ab318
+Q2:http://www.sqlfiddle.com/#!9/e25ac/1
+Q3:http://www.sqlfiddle.com/#!9/d27905/12
+Q4:http://www.sqlfiddle.com/#!9/459e2/1
+Q5:http://www.sqlfiddle.com/#!9/b8d34/4
+Q5 bonus1:http://www.sqlfiddle.com/#!9/77c119/1
+Q5 bonus2:http://www.sqlfiddle.com/#!9/77c119/14
+
+Note: You do not need to check bonus3 and bonus4 below, but they are correct versions for Q5. 
+      The only thing about bonus3 and bonus4 is they do not have a additional Dish table. 
+      Look at bonus3 and bonus4 if you think my bonus1 or bonus2 do not work correctly.
+
+Q5 bonus3:http://www.sqlfiddle.com/#!9/817b87/3
+Q5 bonus4:http://www.sqlfiddle.com/#!9/817b87/6
+
+
+***************************************************************************
+—- Q1:http://www.sqlfiddle.com/#!15/ab318
+
+CREATE TABLE HotelStays(
+  roomNum INTEGER NOT NULL,
+  arrDate DATE NOT NULL,
+  depDate DATE NOT NULL,
+  guestName CHAR(30) NOT NULL,
+  PRIMARY KEY (roomNum, arrDate),
+  CONSTRAINT CK2 CHECK (arrDate < depDate) -- insertion fails here
+);
+
+CREATE OR REPLACE FUNCTION process() RETURNS TRIGGER AS $tg$
+    BEGIN
+        if exists (select * from HotelStays -- trigger condition
+             where arrDate < new.depDate 
+                   and depDate > new.arrDate  
+                   and roomNum = new.roomNum)
+             then
+          RAISE EXCEPTION 'Time overlap occurs!'; -- insertion fails here
+          return null;
+        end if;
+        RETURN new;
+    END;
+$tg$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tg
+BEFORE INSERT OR UPDATE OR DELETE ON HotelStays
+    FOR EACH ROW EXECUTE PROCEDURE process();
+
+INSERT INTO HotelStays(roomNum, arrDate, depDate, guestName)
+VALUES 
+(123, to_date('20160202', 'YYYYMMDD'), to_date('20160206','YYYYMMDD'), 'A'),
+(123, to_date('20160206', 'YYYYMMDD'), to_date('20160208','YYYYMMDD'), 'B'),
+(201, to_date('20160210', 'YYYYMMDD'), to_date('20160216','YYYYMMDD'), 'C')
+; 
+
+********************************************************************************
+
+********************************************************************************
+— Q2:http://www.sqlfiddle.com/#!9/e25ac/1
+
+CREATE TABLE Enrollment(
+  SID INTEGER NOT NULL,
+  ClassName CHAR(10) NOT NULL,
+  Grade CHAR(1) NOT NULL,
+  PRIMARY KEY (SID, ClassName)
+);
+
+INSERT INTO Enrollment(SID, ClassName, Grade)
+VALUES 
+(123, 'ART123', 'A'),
+(123, 'BUS456', 'B'),
+(666, 'REL100', 'D'),
+(666, 'ECO966', 'A'),
+(666, 'BUS456', 'B'),
+(345, 'BUS456', 'A'),
+(345, 'ECO966', 'F')
+; 
+
+CREATE VIEW courseData AS
+  SELECT ClassName, COUNT(*) AS num
+  FROM Enrollment
+  GROUP BY ClassName
+  ORDER BY num, ClassName;
+
+SELECT *
+FROM courseData;
+********************************************************************************
+
+********************************************************************************
+—- Q3:http://www.sqlfiddle.com/#!9/d27905/12
+
+CREATE TABLE Project(
+  ProjectID CHAR(5) NOT NULL,
+  Step INTEGER NOT NULL,
+  Status CHAR(1) NOT NULL,
+  PRIMARY KEY (ProjectID, Step)
+);
+
+INSERT INTO Project(ProjectID, Step, Status)
+VALUES 
+('P100', 0, 'C'),
+('P100', 1, 'W'),
+('P100', 2, 'W'),
+('P201', 0, 'C'),
+('P201', 1, 'C'),
+('P333', 0, 'W'),
+('P333', 1, 'W'),
+('P333', 2, 'W'),
+('P333', 3, 'W')
+; 
+
+SELECT ProjectID
+FROM Project
+WHERE ProjectID NOT IN (SELECT DISTINCT ProjectID
+                  FROM Project
+                  WHERE Step = 0 AND Status = 'W'
+                        OR
+                        Step > 0 AND Status = 'C') AND Step = 0 AND Status = 'C';
+********************************************************************************
+
+********************************************************************************
+—- Q4:http://www.sqlfiddle.com/#!9/459e2/1
+
+CREATE TABLE Junkmail(
+  Name CHAR(20) NOT NULL,
+  Address CHAR(50) NOT NULL,
+  ID INTEGER NOT NULL,
+  Samefam INTEGER,
+  PRIMARY KEY (ID)
+);
+
+INSERT INTO Junkmail(Name, Address, ID, SameFam)
+VALUES 
+('Alice',   'A', 10, NULL),
+('Bob',     'B', 15, NULL),
+('Carmen',  'C', 22, NULL),
+('Diego',   'A', 9,  10),
+('Ella',    'B', 3,  15),
+('Farkhad', 'D', 11, NULL)
+; 
+
+DELETE FROM Junkmail WHERE Name IN (
+    SELECT * FROM (
+        SELECT Name 
+        FROM Junkmail 
+        WHERE SameFam IS NULL 
+              AND ID IN (
+                             SELECT * FROM (
+                                  SELECT SameFam
+                                  FROM Junkmail
+                             ) AS q
+                         )
+    ) AS p
+);
+
+select * from Junkmail;
+********************************************************************************
+
+********************************************************************************
+—- Q5:http://www.sqlfiddle.com/#!9/b8d34/4
+
+CREATE TABLE ChefDish(
+  Chef CHAR(20) NOT NULL,
+  Dish CHAR(50) NOT NULL,
+  PRIMARY KEY (Chef, Dish)
+);
+
+INSERT INTO ChefDish(Chef, Dish)
+VALUES 
+('A', 'Mint chocolate brownie'),
+('B', 'Upside down pineapple cake'),
+('B', 'Creme brulee'),
+('B', 'Mint chocolate brownie'),
+('C', 'Upside down pineapple cake'),
+('C', 'Creme brulee'),
+('D', 'Apple pie'),
+('D', 'Upside down pineapple cake'),
+('D', 'Creme brulee'),
+('E', 'Apple pie'),
+('E', 'Upside down pineapple cake'),
+('E', 'Creme brulee'),
+('E','Bananas Foster')
+;
+
+CREATE TABLE Dishes(
+  Dish CHAR(50) NOT NULL,
+  PRIMARY KEY (Dish)
+);
+
+INSERT INTO Dishes(Dish)
+VALUES
+('Apple pie'),
+('Upside down pineapple cake'),
+('Creme brulee')
+;
+
+SELECT Chef
+FROM ChefDish
+WHERE Dish in(SELECT *
+              FROM Dishes)
+GROUP BY Chef
+HAVING COUNT(Chef) = (SELECT COUNT(DISTINCT Dish)
+                      FROM Dishes);
+********************************************************************************
+
+********************************************************************************
+-- Q5 bonus1:http://www.sqlfiddle.com/#!9/77c119/1
+
+CREATE TABLE ChefDish(
+  Chef CHAR(20) NOT NULL,
+  Dish CHAR(50) NOT NULL,
+  PRIMARY KEY (Chef, Dish)
+);
+
+INSERT INTO ChefDish(Chef, Dish)
+VALUES 
+('A', 'Mint chocolate brownie'),
+('B', 'Upside down pineapple cake'),
+('B', 'Creme brulee'),
+('B', 'Mint chocolate brownie'),
+('C', 'Upside down pineapple cake'),
+('C', 'Creme brulee'),
+('D', 'Apple pie'),
+('D', 'Upside down pineapple cake'),
+('D', 'Creme brulee'),
+('E', 'Apple pie'),
+('E', 'Upside down pineapple cake'),
+('E', 'Creme brulee'),
+('E','Bananas Foster')
+;
+
+CREATE TABLE Dishes(
+  Dish CHAR(50) NOT NULL,
+  PRIMARY KEY (Dish)
+);
+
+INSERT INTO Dishes(Dish)
+VALUES
+('Apple pie'),
+('Upside down pineapple cake'),
+('Creme brulee')
+;
+
+SELECT DISTINCT x.Chef
+FROM ChefDish AS x
+WHERE NOT EXISTS (
+                  SELECT *
+                  FROM  Dishes AS y
+                  WHERE NOT EXISTS (
+                                    SELECT *
+                                    FROM ChefDish AS z
+                                    WHERE (z.Chef=x.Chef) AND (z.Dish=y.Dish)
+                                   )
+                 );
+********************************************************************************
+
+
+********************************************************************************
+-- Q5 bonus2:http://www.sqlfiddle.com/#!9/77c119/14
+
+-- your code goes here
+CREATE TABLE ChefDish(
+  Chef CHAR(20) NOT NULL,
+  Dish CHAR(50) NOT NULL,
+  PRIMARY KEY (Chef, Dish)
+);
+
+INSERT INTO ChefDish(Chef, Dish)
+VALUES 
+('A', 'Mint chocolate brownie'),
+('B', 'Upside down pineapple cake'),
+('B', 'Creme brulee'),
+('B', 'Mint chocolate brownie'),
+('C', 'Upside down pineapple cake'),
+('C', 'Creme brulee'),
+('D', 'Apple pie'),
+('D', 'Upside down pineapple cake'),
+('D', 'Creme brulee'),
+('E', 'Apple pie'),
+('E', 'Upside down pineapple cake'),
+('E', 'Creme brulee'),
+('E','Bananas Foster')
+;
+
+CREATE TABLE Dishes(
+  Dish CHAR(50) NOT NULL,
+  PRIMARY KEY (Dish)
+);
+
+INSERT INTO Dishes(Dish)
+VALUES
+('Apple pie'),
+('Upside down pineapple cake'),
+('Creme brulee')
+;
+
+SELECT T1.Chef
+FROM ChefDish AS T1, Dishes AS T2
+WHERE T1.Dish = T2.Dish
+GROUP BY T1.Chef
+HAVING COUNT(T1.Dish) = (SELECT COUNT(DISTINCT Dish) FROM Dishes);
+********************************************************************************
+
+********************************************************************************
+—- Q5 bonus3:http://www.sqlfiddle.com/#!9/817b87/3
+
+CREATE TABLE ChefDish(
+  Chef CHAR(20) NOT NULL,
+  Dish CHAR(50) NOT NULL,
+  PRIMARY KEY (Chef, Dish)
+);
+
+INSERT INTO ChefDish(Chef, Dish)
+VALUES 
+('A', 'Mint chocolate brownie'),
+('B', 'Upside down pineapple cake'),
+('B', 'Creme brulee'),
+('B', 'Mint chocolate brownie'),
+('C', 'Upside down pineapple cake'),
+('C', 'Creme brulee'),
+('D', 'Apple pie'),
+('D', 'Upside down pineapple cake'),
+('D', 'Creme brulee'),
+('E', 'Apple pie'),
+('E', 'Upside down pineapple cake'),
+('E', 'Creme brulee'),
+('E','Bananas Foster')
+; 
+
+SELECT DISTINCT A.Chef
+FROM ChefDish A
+   INNER JOIN ChefDish B on A.Chef = B.Chef
+   INNER JOIN ChefDish C on A.Chef = C.Chef
+WHERE A.Dish = 'Apple pie'
+   AND B.Dish = 'Upside down pineapple cake'
+   AND C.Dish = 'Creme brulee'
+********************************************************************************
+
+********************************************************************************
+—- Q5 bonus4:http://www.sqlfiddle.com/#!9/817b87/6
+
+CREATE TABLE ChefDish(
+  Chef CHAR(20) NOT NULL,
+  Dish CHAR(50) NOT NULL,
+  PRIMARY KEY (Chef, Dish)
+);
+
+INSERT INTO ChefDish(Chef, Dish)
+VALUES 
+('A', 'Mint chocolate brownie'),
+('B', 'Upside down pineapple cake'),
+('B', 'Creme brulee'),
+('B', 'Mint chocolate brownie'),
+('C', 'Upside down pineapple cake'),
+('C', 'Creme brulee'),
+('D', 'Apple pie'),
+('D', 'Upside down pineapple cake'),
+('D', 'Creme brulee'),
+('E', 'Apple pie'),
+('E', 'Upside down pineapple cake'),
+('E', 'Creme brulee'),
+('E','Bananas Foster')
+; 
+
+SELECT DISTINCT Chef
+FROM ChefDish
+WHERE Chef In (select Chef from ChefDish where Dish = 'Apple pie') 
+    And Chef In (select Chef from ChefDish where Dish = 'Upside down pineapple cake') 
+    And Chef In (select Chef from ChefDish where Dish = 'Creme brulee');
+********************************************************************************

@@ -1,0 +1,64 @@
+Mukai Nong
+3118-3004-28
+2016/04/05
+
+Disclaimer: I used GUI version of POSTGIS, which is Postico. With that saying, I did not ‘type’ the create the table
+and contents using command. Instead, I inserted the table rows using Postico by clicking buttons. If you have 
+trouble creating and loading my table, please email me and I will give you a demo.
+
+	    What you have to do is to download Postico, and create a table called “points”, adding three columns
+“id”, “name” and “point”. You have to load my table contents and implement my queries. Note that I include my
+output for your reference.
+
+******************************************************************************************************************
+Table
+******************************************************************************************************************
+
+CREATE TABLE "public"."points" (
+    "id" Integer,
+    "name" character varying,
+    "point" geometry,
+    PRIMARY KEY ("id")
+);
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('1', 'Home', 'POINT(-118.279 34.025)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('2', 'Leavey Library', 'POINT(-118.283 34.022)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('3', 'SGM', 'POINT(-118.289 34.021)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('4', 'SSL Library', 'POINT(-118.289 34.02)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('5', 'Lyon Center', 'POINT(-118.288 34.024)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('6', 'Exposition/Vermont', 'POINT(-118.291 34.018)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('7', 'Vermont/Jefferson', 'POINT(-118.291 34.025)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('8', 'Jefferson/Figueroa', 'POINT(-118.28 34.022)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+INSERT INTO "public"."points"("id", "name", "point") VALUES('9', 'Figueroa/Exposition', 'POINT(-118.282 34.018)') RETURNING "id", "name", ST_AsEWKT("point") AS "point";
+
+
+******************************************************************************************************************
+SQL: Convex hull 
+******************************************************************************************************************
+SELECT ST_AsText(ST_ConvexHull(ST_Collect(points.point)))
+FROM points
+
+output:
+POLYGON((-118.291 34.018,-118.291 34.025,-118.279 34.025,-118.28 34.022,-118.282 34.018,-118.291 34.018))
+
+******************************************************************************************************************
+SQL: Three nearest neighbors
+******************************************************************************************************************
+SELECT id, name, st_asText(point)
+FROM points
+ORDER BY point <-> (SELECT point FROM points WHERE name = 'Home')
+LIMIT 4;
+
+output:
+1	Home	POINT(-118.279 34.025)
+8	Jefferson/Figueroa	POINT(-118.28 34.022)
+2	Leavey Library	POINT(-118.283 34.022)
+9	Figueroa/Exposition	POINT(-118.282 34.018)

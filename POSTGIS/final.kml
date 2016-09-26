@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.0">
+<Document>
+<Style id="z1">
+<IconStyle><Icon><href>http://www.google.com/intl/en_us/mapfiles/ms/micons/blue-dot.png</href></Icon></IconStyle>
+</Style>
+<Placemark><name>Home</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.279,34.025</coordinates></Point>
+</Placemark>
+<Placemark><name>Leavey Library</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.283,34.022</coordinates></Point>
+</Placemark>
+<Placemark><name>SGM</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.289,34.021</coordinates></Point>
+</Placemark>
+<Placemark><name>SSL Library</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.289,34.020</coordinates></Point>
+</Placemark>
+<Placemark><name>Lyon Center</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.288,34.024</coordinates></Point>
+</Placemark>
+<Placemark><name>Exposition/Vermont</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.291,34.018</coordinates></Point>
+</Placemark>
+<Placemark><name>Vermont/Jefferson</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.291,34.025</coordinates></Point>
+</Placemark>
+<Placemark><name>Jefferson/Figueroa</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.280,34.022</coordinates></Point>
+</Placemark>
+<Placemark><name>Figueroa/Exposition</name>
+<styleUrl>#z1</styleUrl><Point><coordinates>-118.282,34.018</coordinates></Point>
+</Placemark>
+
+<Placemark>
+    <name>USC Campus</name>
+    <Polygon> <outerBoundaryIs>  <LinearRing>  
+     <coordinates>
+            -118.291,34.018
+	    -118.291,34.025
+	    -118.279,34.025
+	    -118.28,34.022
+	    -118.282,34.018
+	    -118.291,34.018
+     </coordinates>
+    </LinearRing> </outerBoundaryIs> 
+    </Polygon>
+</Placemark>
+
+<Placemark>
+ <name> Home to 1st neighbour</name> 
+ <LineString>
+  <coordinates>
+   -118.279,34.025 
+   -118.28,34.022
+  </coordinates>
+ </LineString>
+ <Style> 
+  <LineStyle>  
+   <color>#ff0000ff</color>
+   <width>5</width>
+  </LineStyle> 
+ </Style>
+</Placemark>
+
+<Placemark>
+ <name> Home to 2nd neighbour</name> 
+ <LineString>
+  <coordinates>
+   -118.279,34.025 
+   -118.283,34.022
+  </coordinates>
+ </LineString>
+ <Style> 
+  <LineStyle>  
+   <color>#ff0000ff</color>
+   <width>5</width>
+  </LineStyle> 
+ </Style>
+</Placemark>
+
+<Placemark>
+ <name> Home to 3rd neighbour</name> 
+ <LineString>
+  <coordinates>
+   -118.279,34.025
+   -118.282,34.018
+  </coordinates>
+ </LineString>
+ <Style> 
+  <LineStyle>  
+   <color>#ff0000ff</color>
+   <width>5</width>
+  </LineStyle> 
+ </Style>
+</Placemark>
+
+</Document></kml>
